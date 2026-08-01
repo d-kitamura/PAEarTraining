@@ -9,7 +9,10 @@ PAオペレーター向けの、ブラウザで動作する聴覚・周波数ト
 - ピンクノイズ／ホワイトノイズ／内蔵音楽／英語音声を使った周波数判別
 - Flat（A）とEQ適用後（B）の比較試聴
 - Boost、Cut、ランダム出題
-- 初級、標準、上級の難易度
+- 3／6／9／12 dBの固定変化量
+- 6～12 dB（初級）、3～9 dB（中級）、3～6 dB（上級）のランダム変化量
+- オクターブ、1/3オクターブ、連続周波数から変化周波数を選択
+- 音源の平均スペクトルに合わせた出題周波数範囲
 - 対数周波数軸上でのクリック／ドラッグ回答
 - 20 Hz～20 kHzの対数グラフ上の距離による採点
 - 回答後のターゲットとリアルタイムスペクトル表示
@@ -33,7 +36,7 @@ python -m http.server 8000
 PAEarTraining/
 ├── index.html
 ├── styles.css
-├── armstrong-small-step.ogg
+├── speech-udhr-en.ogg
 ├── src/
 │   ├── main.js
 │   ├── audio-engine.js
@@ -45,12 +48,22 @@ PAEarTraining/
 
 ## 音声素材
 
-`armstrong-small-step.ogg` は、Wikimedia Commonsで公開されている24秒のNASA音声です。
+`speech-udhr-en.ogg` は、Wikimedia Commonsで公開されている18秒の英語朗読です。
 
-- 作品: [Armstrong Small Step.ogg](https://commons.wikimedia.org/wiki/File:Armstrong_Small_Step.ogg)
-- 内容: Apollo 11でNeil Armstrongが月面へ降り立った際の英語音声
-- 作者／出典: Neil Armstrong / NASA
-- 権利表示: 米国政府（NASA）の著作物として米国内でパブリックドメイン
+- 作品: [Universal Declaration of Human Rights - eng - drb - Art1.ogg](https://commons.wikimedia.org/wiki/File:Universal_Declaration_of_Human_Rights_-_eng_-_drb_-_Art1.ogg)
+- 内容: 世界人権宣言第1条の英語朗読
+- 作者／出典: David Barnes / LibriVox
+- 権利表示: Creative Commons Public Domain Dedicationによるパブリックドメイン
+
+## 出題周波数範囲
+
+各ファイルの平均スペクトルと一般的な再生機器の帯域を考慮し、出題範囲を次のように制限しています。
+
+- ピンクノイズ／ホワイトノイズ: 63 Hz～12.5 kHz
+- 音楽（`mix.mp3`）: 63 Hz～4 kHz
+- 英語朗読: 100 Hz～4 kHz
+
+`mix.mp3` はノイズ音源との音量感を近づけるため、+6 dBのプリゲイン後にピークリミッターを適用し、約-9.6 LUFS / -1.0 dBTPへ調整しています。
 
 ## 関連プロジェクト
 

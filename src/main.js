@@ -1,6 +1,6 @@
-import { AudioEngine } from "./audio-engine.js";
-import { createChallenge, formatFrequency, scoreGuess } from "./frequency-hunt.js";
-import { messages, translateDocument } from "./i18n.js";
+import { AudioEngine } from "./audio-engine.js?v=3";
+import { createChallenge, formatFrequency, scoreGuess, SOURCE_FREQUENCY_RANGES } from "./frequency-hunt.js?v=3";
+import { messages, translateDocument } from "./i18n.js?v=3";
 import { SpectrumView } from "./spectrum-view.js";
 
 const audio = new AudioEngine();
@@ -9,7 +9,7 @@ const view = new SpectrumView(document.getElementById("spectrum"), document.getE
 const el = Object.fromEntries([
   "startStop", "masterGain", "languageSelect", "instruction", "statusBadge", "questionNumber", "changeReadout", "guessReadout", "scoreReadout",
   "newQuestion", "submitAnswer", "replayChange", "showSpectrum", "spectrumHidden", "sourceSelect", "difficultySelect", "challengeTypeSelect",
-  "listenFlat", "listenChanged", "resetStats", "answeredStat", "averageStat", "bestStat",
+  "listenFlat", "listenChanged", "resetStats", "answeredStat", "averageStat", "bestStat", "eqAmountSelect", "sourceRangeHint",
 ].map((id) => [id, document.getElementById(id)]));
 
 const storedLanguage = localStorage.getItem("pa-ear-language");
@@ -52,8 +52,31 @@ function setStatus(kind) {
   el.statusBadge.textContent = t(kind === "answered" ? "result" : kind === "listening" ? "listening" : "ready");
 }
 
+function updateAmountOptions() {
+  const current = el.eqAmountSelect.value;
+  const definitions = [
+    ["3", "amount3"],
+    ["6", "amount6"],
+    ["9", "amount9"],
+    ["12", "amount12"],
+    ["random-beginner", "amountRandomBeginner"],
+    ["random-intermediate", "amountRandomIntermediate"],
+    ["random-expert", "amountRandomExpert"],
+  ];
+  el.eqAmountSelect.replaceChildren(...definitions.map(([value, label]) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = t(label);
+    return option;
+  }));
+  const fallback = "random-intermediate";
+  el.eqAmountSelect.value = definitions.some(([value]) => value === current) ? current : fallback;
+  el.eqAmountSelect.disabled = false;
+}
+
 function updateUi() {
   translateDocument(state.language);
+  updateAmountOptions();
   el.languageSelect.value = state.language;
   el.startStop.textContent = t(state.running ? "stop" : "start");
   el.startStop.classList.toggle("running", state.running);
@@ -67,6 +90,8 @@ function updateUi() {
   el.newQuestion.disabled = Boolean(state.challenge && !state.answered);
   el.replayChange.disabled = !state.challenge || !state.running;
   el.spectrumHidden.classList.toggle("hidden", el.showSpectrum.checked || state.answered);
+  const sourceRange = SOURCE_FREQUENCY_RANGES[el.sourceSelect.value] ?? SOURCE_FREQUENCY_RANGES.pink;
+  el.sourceRangeHint.textContent = `${t("questionRange")}: ${formatFrequency(sourceRange.min)}–${formatFrequency(sourceRange.max)}`;
   if (!state.answered) el.scoreReadout.textContent = "–";
   setStatus(state.answered ? "answered" : state.challenge ? "listening" : "idle");
   updateStats();
@@ -108,7 +133,11 @@ async function toggleAudio() {
 }
 
 async function newQuestion() {
-  state.challenge = createChallenge(el.difficultySelect.value, el.challengeTypeSelect.value, state.challenge?.frequency);
+  const frequencyRange = SOURCE_FREQUENCY_RANGES[el.sourceSelect.value] ?? SOURCE_FREQUENCY_RANGES.pink;
+  state.challenge = createChallenge(el.difficultySelect.value, el.challengeTypeSelect.value, state.challenge?.frequency, {
+    amountMode: el.eqAmountSelect.value,
+    frequencyRange,
+  });
   state.guess = null;
   state.answered = false;
   state.auditionChanged = true;
@@ -169,6 +198,7 @@ el.languageSelect.addEventListener("change", () => {
   updateUi();
 });
 el.sourceSelect.addEventListener("change", async () => {
+  updateUi();
   if (!state.running) return;
   try {
     await audio.restart(el.sourceSelect.value);
@@ -181,6 +211,7 @@ el.sourceSelect.addEventListener("change", async () => {
     applyChallenge();
   }
 });
+el.difficultySelect.addEventListener("change", updateUi);
 el.resetStats.addEventListener("click", () => {
   state.stats = { scores: [] };
   saveStats();
@@ -191,7 +222,8 @@ window.addEventListener("resize", () => view.resize());
 window.addEventListener("beforeunload", () => audio.stop());
 
 function animate() {
-  view.setSpectrum(audio.getSpectrum());
+  const currentSpectrum = audio.getSpectrum();
+  view.setSpectrum(currentSpectrum);
   view.draw(el.showSpectrum.checked || state.answered);
   requestAnimationFrame(animate);
 }

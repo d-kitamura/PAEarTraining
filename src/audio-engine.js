@@ -159,7 +159,7 @@ export class AudioEngine {
 
   async loadSpeech() {
     if (this.speechBuffer) return this.speechBuffer;
-    const response = await fetch("armstrong-small-step.ogg");
+    const response = await fetch("speech-udhr-en.ogg");
     if (!response.ok) throw new Error(`Could not load speech (${response.status}).`);
     this.speechBuffer = await this.context.decodeAudioData(await response.arrayBuffer());
     return this.speechBuffer;

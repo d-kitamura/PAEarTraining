@@ -6,22 +6,46 @@ const ZERO_SCORE_DISTANCE = 0.18;
 const randomItem = (items) => items[Math.floor(Math.random() * items.length)];
 
 export const DIFFICULTIES = {
-  beginner: { gain: 12, q: 1.1 },
-  standard: { gain: 9, q: 2 },
-  expert: { gain: 6, q: 3.5 },
+  beginner: { q: 1.1, defaultAmount: "random-intermediate" },
+  standard: { q: 2, defaultAmount: "random-intermediate" },
+  expert: { q: 3.5, defaultAmount: "random-intermediate" },
 };
 
-export function createChallenge(difficulty, type, previousFrequency = null) {
+export const SOURCE_FREQUENCY_RANGES = {
+  pink: { min: 63, max: 12500 },
+  white: { min: 63, max: 12500 },
+  music: { min: 63, max: 4000 },
+  speech: { min: 100, max: 4000 },
+};
+
+function resolveAmount(difficulty, amountMode) {
+  if (amountMode === "random-beginner") return Math.round((6 + Math.random() * 6) * 10) / 10;
+  if (amountMode === "random-intermediate") return Math.round((3 + Math.random() * 6) * 10) / 10;
+  if (amountMode === "random-expert") return Math.round((3 + Math.random() * 3) * 10) / 10;
+  const fixed = Number(amountMode);
+  if (Number.isFinite(fixed) && fixed >= 3 && fixed <= 12) return fixed;
+  return resolveAmount(difficulty, DIFFICULTIES[difficulty]?.defaultAmount ?? "6");
+}
+
+export function createChallenge(difficulty, type, previousFrequency = null, options = {}) {
   const settings = DIFFICULTIES[difficulty] ?? DIFFICULTIES.standard;
+  const range = options.frequencyRange ?? SOURCE_FREQUENCY_RANGES.pink;
   let frequency;
+  let attempts = 0;
   do {
-    if (difficulty === "beginner") frequency = randomItem(OCTAVE_FREQUENCIES);
-    else if (difficulty === "standard") frequency = randomItem(THIRD_OCTAVE_FREQUENCIES);
-    else frequency = 10 ** (Math.log10(40) + Math.random() * (Math.log10(16000) - Math.log10(40)));
-  } while (previousFrequency && Math.abs(Math.log2(frequency / previousFrequency)) < 0.08);
+    if (difficulty === "beginner") {
+      frequency = randomItem(OCTAVE_FREQUENCIES.filter((value) => value >= range.min && value <= range.max));
+    } else if (difficulty === "standard") {
+      frequency = randomItem(THIRD_OCTAVE_FREQUENCIES.filter((value) => value >= range.min && value <= range.max));
+    } else {
+      frequency = 10 ** (Math.log10(range.min) + Math.random() * (Math.log10(range.max) - Math.log10(range.min)));
+    }
+    attempts += 1;
+  } while (attempts < 20 && previousFrequency && Math.abs(Math.log2(frequency / previousFrequency)) < 0.08);
 
   const direction = type === "random" ? randomItem(["boost", "cut"]) : type;
-  const gain = settings.gain * (direction === "cut" ? -1 : 1);
+  const amount = resolveAmount(difficulty, options.amountMode ?? settings.defaultAmount);
+  const gain = amount * (direction === "cut" ? -1 : 1);
   return { frequency, gain, q: settings.q, direction, difficulty };
 }
 

@@ -108,8 +108,9 @@
               <option value="pink" data-i18n="pinkNoise">Pink noise</option>
               <option value="white" data-i18n="whiteNoise">White noise</option>
               <option value="music" data-i18n="music">Music (mix.mp3)</option>
-              <option value="speech" data-i18n="speech">Speech (Apollo 11)</option>
+              <option value="speech" data-i18n="speech">Speech (English reading)</option>
             </select>
+            <small id="sourceRangeHint" class="fieldHint"></small>
           </label>
 
           <label class="field">
@@ -119,6 +120,11 @@
               <option value="standard" data-i18n="standard" selected>Standard · 1/3 octave</option>
               <option value="expert" data-i18n="expert">Expert · continuous</option>
             </select>
+          </label>
+
+          <label class="field">
+            <span data-i18n="eqAmount">EQ amount</span>
+            <select id="eqAmountSelect"></select>
           </label>
 
           <label class="field">
@@ -167,6 +173,6 @@
     </section>
   </main>
 
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js?v=3"></script>
 </body>
 </html>
