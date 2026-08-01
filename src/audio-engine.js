@@ -9,6 +9,7 @@ export class AudioEngine {
     this.source = null;
     this.sourceType = null;
     this.musicBuffer = null;
+    this.speechBuffer = null;
     this.spectrumData = null;
     this.masterValue = 0.06;
     this.target = { frequency: 1000, gain: 0, q: 2 };
@@ -67,10 +68,17 @@ export class AudioEngine {
     this.filter.gain.value = this.target.gain;
     this.filter.connect(this.analyser);
 
-    if (sourceType === "music") {
-      const buffer = await this.loadMusic();
+    if (sourceType === "music" || sourceType === "speech") {
+      const buffer = sourceType === "music" ? await this.loadMusic() : await this.loadSpeech();
       const source = this.context.createBufferSource();
       source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.filter);
+      source.start();
+      this.source = source;
+    } else if (sourceType === "white") {
+      const source = this.context.createBufferSource();
+      source.buffer = this.createWhiteNoiseBuffer();
       source.loop = true;
       source.connect(this.filter);
       source.start();
@@ -133,12 +141,28 @@ export class AudioEngine {
     return buffer;
   }
 
+  createWhiteNoiseBuffer() {
+    const length = this.context.sampleRate * 4;
+    const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * 0.22;
+    return buffer;
+  }
+
   async loadMusic() {
     if (this.musicBuffer) return this.musicBuffer;
     const response = await fetch("mix.mp3");
     if (!response.ok) throw new Error(`Could not load music (${response.status}).`);
     this.musicBuffer = await this.context.decodeAudioData(await response.arrayBuffer());
     return this.musicBuffer;
+  }
+
+  async loadSpeech() {
+    if (this.speechBuffer) return this.speechBuffer;
+    const response = await fetch("armstrong-small-step.ogg");
+    if (!response.ok) throw new Error(`Could not load speech (${response.status}).`);
+    this.speechBuffer = await this.context.decodeAudioData(await response.arrayBuffer());
+    return this.speechBuffer;
   }
 
   getSpectrum() {

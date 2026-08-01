@@ -64,6 +64,7 @@ function updateUi() {
     : t("hidden");
   el.instruction.textContent = t(state.answered ? "instructionAnswered" : state.challenge ? "instructionListening" : "instructionReady");
   el.submitAnswer.disabled = !state.challenge || !state.guess || state.answered;
+  el.newQuestion.disabled = Boolean(state.challenge && !state.answered);
   el.replayChange.disabled = !state.challenge || !state.running;
   el.spectrumHidden.classList.toggle("hidden", el.showSpectrum.checked || state.answered);
   if (!state.answered) el.scoreReadout.textContent = "–";
@@ -91,7 +92,7 @@ async function ensureRunning() {
     return true;
   } catch (error) {
     console.error(error);
-    window.alert(t(el.sourceSelect.value === "music" ? "musicError" : "audioError"));
+    window.alert(t(["music", "speech"].includes(el.sourceSelect.value) ? "sampleError" : "audioError"));
     return false;
   }
 }
@@ -174,7 +175,7 @@ el.sourceSelect.addEventListener("change", async () => {
     applyChallenge();
   } catch (error) {
     console.error(error);
-    window.alert(t(el.sourceSelect.value === "music" ? "musicError" : "audioError"));
+    window.alert(t(["music", "speech"].includes(el.sourceSelect.value) ? "sampleError" : "audioError"));
     el.sourceSelect.value = "pink";
     await audio.restart("pink");
     applyChallenge();

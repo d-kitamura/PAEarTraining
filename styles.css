@@ -110,6 +110,8 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .plotHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding: 23px 26px 19px; }
 .plotHeader h2 { margin: 4px 0 5px; font-size: 1.4rem; }
 .plotHeader p:last-child { margin: 0; color: var(--muted); }
+.primaryActions { display: flex; gap: 10px; margin-top: 17px; flex-wrap: wrap; }
+.primaryActions .accent { background: var(--green); border-color: var(--green); color: #061006; font-weight: 850; }
 .statusBadge { border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; color: var(--muted); font-size: 0.82rem; font-weight: 750; }
 .statusBadge.listening { color: var(--green); border-color: var(--green); background: var(--green-soft); }
 .statusBadge.answered { color: var(--orange); border-color: var(--orange); background: var(--orange-soft); }
@@ -144,7 +146,6 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .earIcon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 10px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--green); font-size: 1.5rem; }
 
 .answerBar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--line); flex-wrap: wrap; }
-.answerBar .accent { background: var(--green); border-color: var(--green); color: #061006; font-weight: 850; }
 .monitorToggle { display: flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: 0.82rem; }
 
 .sidePanel { overflow: hidden; }
@@ -189,6 +190,7 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
   .challengeStrip > div:nth-child(2) { border-right: 0; }
   .challengeStrip > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .plotCanvasWrap { min-height: 360px; }
+  .primaryActions button { flex: 1 1 135px; }
   .spectrumHidden { inset: 45px 18px 65px 58px; }
   .monitorToggle { width: 100%; margin-left: 0; }
   .sidePanel { display: block; }

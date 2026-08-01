@@ -51,6 +51,11 @@
             <p class="sectionLabel" data-i18n="exercise">Exercise</p>
             <h2 data-i18n="frequencyHunt">Frequency Hunt</h2>
             <p id="instruction" data-i18n="instructionReady">Start the audio, then create a question.</p>
+            <div class="primaryActions">
+              <button id="newQuestion" class="accent" type="button" data-i18n="newQuestion">New question</button>
+              <button id="submitAnswer" type="button" disabled data-i18n="submit">Submit answer</button>
+              <button id="replayChange" type="button" disabled data-i18n="replay">Replay A/B</button>
+            </div>
           </div>
           <div id="statusBadge" class="statusBadge idle" data-i18n="ready">Ready</div>
         </div>
@@ -85,9 +90,6 @@
         </div>
 
         <div class="answerBar">
-          <button id="newQuestion" type="button" data-i18n="newQuestion">New question</button>
-          <button id="submitAnswer" class="accent" type="button" disabled data-i18n="submit">Submit answer</button>
-          <button id="replayChange" type="button" disabled data-i18n="replay">Replay A/B</button>
           <label class="monitorToggle">
             <input id="showSpectrum" type="checkbox">
             <span data-i18n="showSpectrum">Show spectrum while answering</span>
@@ -104,7 +106,9 @@
             <span data-i18n="source">Source</span>
             <select id="sourceSelect">
               <option value="pink" data-i18n="pinkNoise">Pink noise</option>
+              <option value="white" data-i18n="whiteNoise">White noise</option>
               <option value="music" data-i18n="music">Music (mix.mp3)</option>
+              <option value="speech" data-i18n="speech">Speech (Apollo 11)</option>
             </select>
           </label>
 

@@ -1,5 +1,7 @@
 const OCTAVE_FREQUENCIES = [63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 const THIRD_OCTAVE_FREQUENCIES = [50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000];
+const GRAPH_LOG_RANGE = Math.log10(20000 / 20);
+const ZERO_SCORE_DISTANCE = 0.18;
 
 const randomItem = (items) => items[Math.floor(Math.random() * items.length)];
 
@@ -25,12 +27,13 @@ export function createChallenge(difficulty, type, previousFrequency = null) {
 
 export function scoreGuess(guess, target) {
   const cents = Math.abs(1200 * Math.log2(guess / target));
-  const score = Math.max(0, Math.round(100 * Math.exp(-cents / 480)));
+  const graphDistance = Math.abs(Math.log10(guess / target)) / GRAPH_LOG_RANGE;
+  const score = Math.max(0, Math.round(100 * (1 - graphDistance / ZERO_SCORE_DISTANCE)));
   let rating = "keepTrying";
-  if (cents <= 55) rating = "excellent";
-  else if (cents <= 170) rating = "great";
-  else if (cents <= 360) rating = "close";
-  return { cents, score, rating };
+  if (score >= 90) rating = "excellent";
+  else if (score >= 75) rating = "great";
+  else if (score >= 40) rating = "close";
+  return { cents, graphDistance, score, rating };
 }
 
 export function formatFrequency(frequency) {
