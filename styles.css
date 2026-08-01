@@ -112,6 +112,11 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
 .plotHeader p:last-child { margin: 0; color: var(--muted); }
 .primaryActions { display: flex; gap: 10px; margin-top: 17px; flex-wrap: wrap; }
 .primaryActions .accent { background: var(--green); border-color: var(--green); color: #061006; font-weight: 850; }
+.alternatingControl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.alternatingControl button.active { color: var(--orange); border-color: var(--orange); background: var(--orange-soft); }
+.abSpeedControl { display: grid; grid-template-columns: auto minmax(90px, 140px) 3.4rem; align-items: center; gap: 8px; color: var(--muted); font-size: 0.74rem; white-space: nowrap; }
+.abSpeedControl input { width: 100%; }
+.abSpeedControl output { color: var(--text); font-variant-numeric: tabular-nums; }
 .statusBadge { border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; color: var(--muted); font-size: 0.82rem; font-weight: 750; }
 .statusBadge.listening { color: var(--green); border-color: var(--green); background: var(--green-soft); }
 .statusBadge.answered { color: var(--orange); border-color: var(--orange); background: var(--orange-soft); }
@@ -192,6 +197,9 @@ button:disabled { cursor: not-allowed; opacity: 0.45; }
   .challengeStrip > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
   .plotCanvasWrap { min-height: 360px; }
   .primaryActions button { flex: 1 1 135px; }
+  .alternatingControl { flex: 1 1 100%; }
+  .alternatingControl button { flex: 0 1 auto; }
+  .abSpeedControl { flex: 1; grid-template-columns: auto minmax(80px, 1fr) 3.4rem; }
   .spectrumHidden { inset: 45px 18px 65px 58px; }
   .monitorToggle { width: 100%; margin-left: 0; }
   .sidePanel { display: block; }

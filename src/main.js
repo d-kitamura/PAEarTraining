@@ -8,7 +8,7 @@ const view = new SpectrumView(document.getElementById("spectrum"), document.getE
 
 const el = Object.fromEntries([
   "startStop", "masterGain", "languageSelect", "instruction", "statusBadge", "questionNumber", "changeReadout", "guessReadout", "scoreReadout",
-  "newQuestion", "submitAnswer", "replayChange", "showSpectrum", "spectrumHidden", "sourceSelect", "difficultySelect", "challengeTypeSelect",
+  "newQuestion", "submitAnswer", "replayChange", "abInterval", "abIntervalReadout", "showSpectrum", "spectrumHidden", "sourceSelect", "difficultySelect", "challengeTypeSelect",
   "listenFlat", "listenChanged", "resetStats", "answeredStat", "averageStat", "bestStat", "eqAmountSelect", "sourceRangeHint",
 ].map((id) => [id, document.getElementById(id)]));
 
@@ -20,6 +20,8 @@ const state = {
   guess: null,
   answered: false,
   auditionChanged: true,
+  abAlternating: false,
+  abTimer: null,
   questionNumber: 0,
   stats: loadStats(),
 };
@@ -89,6 +91,13 @@ function updateUi() {
   el.submitAnswer.disabled = !state.challenge || !state.guess || state.answered;
   el.newQuestion.disabled = Boolean(state.challenge && !state.answered);
   el.replayChange.disabled = !state.challenge || !state.running;
+  el.replayChange.textContent = t(state.abAlternating ? "stopReplay" : "replay");
+  el.replayChange.classList.toggle("active", state.abAlternating);
+  el.replayChange.setAttribute("aria-pressed", String(state.abAlternating));
+  const intervalSeconds = getAbIntervalSeconds();
+  const intervalLabel = intervalSeconds.toFixed(2).replace(/0$/, "");
+  el.abIntervalReadout.textContent = `${intervalLabel} s`;
+  el.abInterval.setAttribute("aria-valuetext", `${intervalLabel} s`);
   el.spectrumHidden.classList.toggle("hidden", el.showSpectrum.checked || state.answered);
   const sourceRange = SOURCE_FREQUENCY_RANGES[el.sourceSelect.value] ?? SOURCE_FREQUENCY_RANGES.pink;
   el.sourceRangeHint.textContent = `${t("questionRange")}: ${formatFrequency(sourceRange.min)}–${formatFrequency(sourceRange.max)}`;
@@ -124,6 +133,7 @@ async function ensureRunning() {
 
 async function toggleAudio() {
   if (state.running) {
+    stopAlternating(false);
     audio.stop();
     state.running = false;
     updateUi();
@@ -133,6 +143,7 @@ async function toggleAudio() {
 }
 
 async function newQuestion() {
+  stopAlternating(false);
   const frequencyRange = SOURCE_FREQUENCY_RANGES[el.sourceSelect.value] ?? SOURCE_FREQUENCY_RANGES.pink;
   state.challenge = createChallenge(el.difficultySelect.value, el.challengeTypeSelect.value, state.challenge?.frequency, {
     amountMode: el.eqAmountSelect.value,
@@ -168,12 +179,41 @@ function setAudition(changed) {
   applyChallenge();
 }
 
-async function replayAb() {
+function stopAlternating(restoreChanged = true) {
+  if (state.abTimer !== null) window.clearTimeout(state.abTimer);
+  state.abTimer = null;
+  state.abAlternating = false;
+  if (restoreChanged && state.challenge) setAudition(true);
+}
+
+function getAbIntervalSeconds() {
+  const position = Number(el.abInterval.value);
+  const seconds = position <= 50
+    ? 0.2 + (position / 50) * 0.3
+    : 0.5 + ((position - 50) / 50) * 0.5;
+  return Math.round(seconds * 100) / 100;
+}
+
+function scheduleNextAlternation() {
+  if (!state.abAlternating || !state.running || !state.challenge) return;
+  const intervalMs = getAbIntervalSeconds() * 1000;
+  state.abTimer = window.setTimeout(() => {
+    if (!state.abAlternating) return;
+    setAudition(!state.auditionChanged);
+    scheduleNextAlternation();
+  }, intervalMs);
+}
+
+function toggleAlternating() {
   if (!state.running || !state.challenge) return;
-  setAudition(false);
-  el.replayChange.disabled = true;
-  window.setTimeout(() => setAudition(true), 900);
-  window.setTimeout(() => { el.replayChange.disabled = false; }, 1800);
+  if (state.abAlternating) {
+    stopAlternating(true);
+  } else {
+    state.abAlternating = true;
+    setAudition(false);
+    scheduleNextAlternation();
+  }
+  updateUi();
 }
 
 view.onGuess = (frequency) => {
@@ -187,9 +227,25 @@ view.onGuess = (frequency) => {
 el.startStop.addEventListener("click", toggleAudio);
 el.newQuestion.addEventListener("click", newQuestion);
 el.submitAnswer.addEventListener("click", submitAnswer);
-el.replayChange.addEventListener("click", replayAb);
-el.listenFlat.addEventListener("click", () => setAudition(false));
-el.listenChanged.addEventListener("click", () => setAudition(true));
+el.replayChange.addEventListener("click", toggleAlternating);
+el.abInterval.addEventListener("input", () => {
+  if (state.abAlternating) {
+    if (state.abTimer !== null) window.clearTimeout(state.abTimer);
+    state.abTimer = null;
+    scheduleNextAlternation();
+  }
+  updateUi();
+});
+el.listenFlat.addEventListener("click", () => {
+  stopAlternating(false);
+  setAudition(false);
+  updateUi();
+});
+el.listenChanged.addEventListener("click", () => {
+  stopAlternating(false);
+  setAudition(true);
+  updateUi();
+});
 el.masterGain.addEventListener("input", () => audio.setMaster(el.masterGain.value));
 el.showSpectrum.addEventListener("change", updateUi);
 el.languageSelect.addEventListener("change", () => {
@@ -198,6 +254,7 @@ el.languageSelect.addEventListener("change", () => {
   updateUi();
 });
 el.sourceSelect.addEventListener("change", async () => {
+  stopAlternating(false);
   updateUi();
   if (!state.running) return;
   try {
@@ -219,7 +276,10 @@ el.resetStats.addEventListener("click", () => {
 });
 
 window.addEventListener("resize", () => view.resize());
-window.addEventListener("beforeunload", () => audio.stop());
+window.addEventListener("beforeunload", () => {
+  stopAlternating(false);
+  audio.stop();
+});
 
 function animate() {
   const currentSpectrum = audio.getSpectrum();

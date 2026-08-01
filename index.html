@@ -54,7 +54,14 @@
             <div class="primaryActions">
               <button id="newQuestion" class="accent" type="button" data-i18n="newQuestion">New question</button>
               <button id="submitAnswer" type="button" disabled data-i18n="submit">Submit answer</button>
-              <button id="replayChange" type="button" disabled data-i18n="replay">Replay A/B</button>
+              <div class="alternatingControl">
+                <button id="replayChange" type="button" disabled data-i18n="replay">Alternate A/B</button>
+                <label class="abSpeedControl">
+                  <span data-i18n="switchInterval">Interval</span>
+                  <input id="abInterval" type="range" min="0" max="100" step="1" value="50">
+                  <output id="abIntervalReadout" for="abInterval">0.5 s</output>
+                </label>
+              </div>
             </div>
           </div>
           <div id="statusBadge" class="statusBadge idle" data-i18n="ready">Ready</div>
