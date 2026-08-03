@@ -1,11 +1,12 @@
 export const messages = {
   en: {
     subtitle: "Practical frequency training for live sound", start: "Start audio", stop: "Stop audio", master: "Master", language: "Language",
-    frequencyHuntShort: "Find the changed frequency", moreModes: "More PA training modes will follow", exercise: "Exercise", frequencyHunt: "Frequency Hunt",
+    frequencyHuntShort: "Find the changed frequency", feedbackKillerShort: "Find and suppress feedback", moreModes: "More PA training modes will follow", exercise: "Exercise", frequencyHunt: "Frequency Hunt", feedbackKiller: "Feedback Killer",
     instructionReady: "Start the audio, then create a question.", instructionListening: "Compare A and B, then click or drag on the graph to place your guess.",
     instructionAnswered: "Orange is the target. Listen again and connect the sound with its frequency.", ready: "Ready", listening: "Listening", result: "Result",
     question: "Question", change: "Change", yourGuess: "Your guess", score: "Score", hidden: "Hidden", boostLabel: "Boost", cutLabel: "Cut",
     listenFirst: "Listen first", spectrumHidden: "The spectrum appears after you answer", newQuestion: "New question", submit: "Submit answer", replay: "Alternate A/B", stopReplay: "Stop alternating", switchInterval: "Interval",
+    feedbackReady: "Start the audio, then create a feedback problem.", feedbackListening: "Drag the notch across the graph and stop where the ringing is weakest.", feedbackAnswered: "Orange is the feedback frequency. Compare it with your green notch position.", feedbackFrequency: "Feedback", notchFrequency: "Your notch", notchWidth: "Notch width", notchWide: "Wide · Q 4", notchStandard: "Standard · Q 8", notchNarrow: "Narrow · Q 12", feedbackStatus: "Feedback active", notchMarker: "NOTCH", feedbackMarker: "FEEDBACK", feedbackTip: "Sweep a narrow cut slowly. When the ringing drops, move back and forth in smaller steps before locking your answer.",
     showSpectrum: "Show spectrum while answering", sessionSetup: "Session setup", trainingSettings: "Training settings", source: "Source", pinkNoise: "Pink noise", whiteNoise: "White noise",
     music: "Music (mix.mp3)", speech: "Speech (English reading)", difficulty: "Changed frequency", beginner: "Octave steps · Beginner", standard: "1/3-octave steps · Intermediate", expert: "Continuous frequency · Advanced", questionRange: "Question range",
     eqAmount: "EQ amount", amount12: "12 dB", amount9: "9 dB", amount6: "6 dB", amount3: "3 dB", amountRandomBeginner: "Random · 6–12 dB (Beginner)", amountRandomIntermediate: "Random · 3–9 dB (Intermediate)", amountRandomExpert: "Random · 3–6 dB (Advanced)",
@@ -17,11 +18,12 @@ export const messages = {
   },
   ja: {
     subtitle: "ライブサウンドのための実践的な周波数トレーニング", start: "音を開始", stop: "音を停止", master: "マスター", language: "言語",
-    frequencyHuntShort: "変化した周波数を当てる", moreModes: "PAトレーニングモードを順次追加予定", exercise: "エクササイズ", frequencyHunt: "Frequency Hunt",
+    frequencyHuntShort: "変化した周波数を当てる", feedbackKillerShort: "ハウリングを探して抑える", moreModes: "PAトレーニングモードを順次追加予定", exercise: "エクササイズ", frequencyHunt: "Frequency Hunt", feedbackKiller: "Feedback Killer",
     instructionReady: "音を開始して、新しい問題を作成してください。", instructionListening: "AとBを聴き比べ、グラフ上をクリックまたはドラッグして回答位置を決めます。",
     instructionAnswered: "オレンジ色が正解です。もう一度聴いて、音の特徴と周波数を結び付けましょう。", ready: "準備完了", listening: "出題中", result: "結果",
     question: "問題", change: "変化", yourGuess: "あなたの回答", score: "スコア", hidden: "非表示", boostLabel: "ブースト", cutLabel: "カット",
     listenFirst: "まず耳で聴きましょう", spectrumHidden: "回答後にスペクトルを表示します", newQuestion: "新しい問題", submit: "回答する", replay: "A/Bを交互再生", stopReplay: "交互再生を停止", switchInterval: "切替",
+    feedbackReady: "音を開始して、フィードバック問題を作成してください。", feedbackListening: "グラフ上でノッチを動かし、発振音が最も弱くなる位置を探してください。", feedbackAnswered: "オレンジ色がフィードバック周波数です。緑色のノッチ位置と比べてください。", feedbackFrequency: "フィードバック", notchFrequency: "ノッチ位置", notchWidth: "ノッチ幅", notchWide: "広い · Q 4", notchStandard: "標準 · Q 8", notchNarrow: "狭い · Q 12", feedbackStatus: "発振中", notchMarker: "ノッチ", feedbackMarker: "発振", feedbackTip: "細いカットをゆっくりスイープし、発振音が弱くなったら往復幅を小さくして位置を追い込みましょう。",
     showSpectrum: "回答中もスペクトルを表示", sessionSetup: "セッション設定", trainingSettings: "トレーニング設定", source: "音源", pinkNoise: "ピンクノイズ", whiteNoise: "ホワイトノイズ",
     music: "音楽（mix.mp3）", speech: "音声（英語朗読）", difficulty: "変化周波数", beginner: "オクターブ刻み（初級）", standard: "1/3オクターブ刻み（中級）", expert: "連続周波数（上級）", questionRange: "出題範囲",
     eqAmount: "EQ変化量", amount12: "12 dB", amount9: "9 dB", amount6: "6 dB", amount3: "3 dB", amountRandomBeginner: "6～12 dBランダム（初級）", amountRandomIntermediate: "3～9 dBランダム（中級）", amountRandomExpert: "3～6 dBランダム（上級）",

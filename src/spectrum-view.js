@@ -17,6 +17,8 @@ export class SpectrumView {
     this.spectrum = null;
     this.onGuess = null;
     this.pointerId = null;
+    this.guessLabel = "GUESS";
+    this.targetLabel = "TARGET";
     this.bindPointers();
     this.resize();
   }
@@ -101,6 +103,11 @@ export class SpectrumView {
     this.spectrum = spectrum;
   }
 
+  setMarkerLabels(guess, target) {
+    this.guessLabel = guess;
+    this.targetLabel = target;
+  }
+
   draw(showSpectrum) {
     const ctx = this.ctx;
     const area = this.rect();
@@ -140,8 +147,8 @@ export class SpectrumView {
     }
 
     if (showSpectrum && this.spectrum) this.drawSpectrum(area, scale);
-    if (this.guess) this.drawMarker(this.guess, "#39ff14", "GUESS", area, scale, false);
-    if (this.answered && this.target) this.drawMarker(this.target, "#ff7117", "TARGET", area, scale, true);
+    if (this.guess) this.drawMarker(this.guess, "#39ff14", this.guessLabel, area, scale, false);
+    if (this.answered && this.target) this.drawMarker(this.target, "#ff7117", this.targetLabel, area, scale, true);
 
     ctx.strokeStyle = "#6f879a";
     ctx.lineWidth = scale;

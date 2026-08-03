@@ -10,6 +10,8 @@ export class AudioEngine {
     this.sourceType = null;
     this.musicBuffer = null;
     this.speechBuffer = null;
+    this.feedbackOscillator = null;
+    this.feedbackGain = null;
     this.spectrumData = null;
     this.masterValue = 0.06;
     this.target = { frequency: 1000, gain: 0, q: 2 };
@@ -57,12 +59,12 @@ export class AudioEngine {
     this.setEffect({ ...this.target, gain: changed ? this.target.challengeGain ?? this.target.gain : 0 });
   }
 
-  async start(sourceType = "pink") {
+  async start(sourceType = "pink", options = {}) {
     await this.ensureContext();
     this.stopSource();
 
     this.filter = this.context.createBiquadFilter();
-    this.filter.type = "peaking";
+    this.filter.type = options.filterType ?? "peaking";
     this.filter.frequency.value = this.target.frequency;
     this.filter.Q.value = this.target.q;
     this.filter.gain.value = this.target.gain;
@@ -93,13 +95,56 @@ export class AudioEngine {
     }
 
     this.sourceType = sourceType;
+    if (options.feedbackFrequency) this.startFeedbackTone(options.feedbackFrequency, options.feedbackLevel);
   }
 
-  async restart(sourceType) {
-    await this.start(sourceType);
+  async startFeedback(sourceType, { feedbackFrequency, notchFrequency, q = 8, feedbackLevel = 0.1 }) {
+    this.target = { frequency: notchFrequency, gain: 0, q };
+    await this.start(sourceType, { filterType: "notch", feedbackFrequency, feedbackLevel });
+  }
+
+  async restart(sourceType, options = {}) {
+    await this.start(sourceType, options);
+  }
+
+  setNotch({ frequency, q }) {
+    this.target = { frequency: clamp(Number(frequency), 20, 20000), gain: 0, q: clamp(Number(q), 0.2, 16) };
+    if (!this.filter || !this.context) return;
+    this.filter.type = "notch";
+    const now = this.context.currentTime;
+    this.filter.frequency.setTargetAtTime(this.target.frequency, now, 0.018);
+    this.filter.Q.setTargetAtTime(this.target.q, now, 0.018);
+  }
+
+  startFeedbackTone(frequency, level = 0.1) {
+    if (!this.context || !this.filter) return;
+    this.stopFeedbackTone();
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = clamp(Number(frequency), 20, 20000);
+    gain.gain.value = clamp(Number(level), 0.02, 0.14);
+    oscillator.connect(gain);
+    gain.connect(this.filter);
+    oscillator.start();
+    this.feedbackOscillator = oscillator;
+    this.feedbackGain = gain;
+  }
+
+  stopFeedbackTone() {
+    if (this.feedbackOscillator) {
+      try { this.feedbackOscillator.stop(); } catch { /* already stopped */ }
+      try { this.feedbackOscillator.disconnect(); } catch { /* already disconnected */ }
+    }
+    if (this.feedbackGain) {
+      try { this.feedbackGain.disconnect(); } catch { /* already disconnected */ }
+    }
+    this.feedbackOscillator = null;
+    this.feedbackGain = null;
   }
 
   stopSource() {
+    this.stopFeedbackTone();
     if (this.source) {
       try { this.source.stop(); } catch { /* already stopped */ }
       try { this.source.disconnect(); } catch { /* already disconnected */ }
