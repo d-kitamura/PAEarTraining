@@ -19,6 +19,8 @@ export class SpectrumView {
     this.pointerId = null;
     this.guessLabel = "GUESS";
     this.targetLabel = "TARGET";
+    this.eqMatch = null;
+    this.onEqChange = null;
     this.bindPointers();
     this.resize();
   }
@@ -52,7 +54,9 @@ export class SpectrumView {
 
   dbToY(db) {
     const area = this.rect();
-    return area.y + (1 - (clamp(db, DB_MIN, DB_MAX) - DB_MIN) / (DB_MAX - DB_MIN)) * area.h;
+    const min = this.eqMatch ? -18 : DB_MIN;
+    const max = this.eqMatch ? 18 : DB_MAX;
+    return area.y + (1 - (clamp(db, min, max) - min) / (max - min)) * area.h;
   }
 
   pointFromEvent(event) {
@@ -67,8 +71,15 @@ export class SpectrumView {
     const point = this.pointFromEvent(event);
     const area = this.rect();
     if (point.x < area.x || point.x > area.x + area.w || point.y < area.y || point.y > area.y + area.h) return;
-    this.guess = this.xToFrequency(point.x);
-    this.onGuess?.(this.guess);
+    if (this.eqMatch) {
+      if (this.eqMatch.editable) this.onEqChange?.({
+        frequency: this.xToFrequency(point.x),
+        gain: clamp(18 - 36 * (point.y - area.y) / area.h, -12, 12),
+      });
+    } else {
+      // 採点後の操作を無視するかどうかは呼び出し側が判断する。
+      this.onGuess?.(this.xToFrequency(point.x));
+    }
   }
 
   bindPointers() {
@@ -91,6 +102,16 @@ export class SpectrumView {
     this.hitLayer.addEventListener("pointercancel", end);
     this.hitLayer.addEventListener("lostpointercapture", end);
     this.hitLayer.addEventListener("dragstart", (event) => event.preventDefault());
+    this.hitLayer.addEventListener("wheel", (event) => {
+      if (!this.eqMatch?.editable) return;
+      event.preventDefault();
+      this.onEqChange?.({ q: this.eqMatch.user.q * Math.exp(-event.deltaY * 0.003) });
+    }, { passive: false });
+    this.hitLayer.addEventListener("dblclick", (event) => {
+      if (!this.eqMatch?.editable) return;
+      event.preventDefault();
+      this.onEqChange?.({ gain: 0 });
+    });
   }
 
   setQuestion({ guess = null, target = null, answered = false } = {}) {
@@ -106,6 +127,10 @@ export class SpectrumView {
   setMarkerLabels(guess, target) {
     this.guessLabel = guess;
     this.targetLabel = target;
+  }
+
+  setEqMatch(model = null) {
+    this.eqMatch = model;
   }
 
   draw(showSpectrum) {
@@ -134,25 +159,55 @@ export class SpectrumView {
 
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
-    for (let db = -90; db <= -30; db += 15) {
+    const dbTicks = this.eqMatch ? [-12, -6, 0, 6, 12] : [-90, -75, -60, -45, -30];
+    for (const db of dbTicks) {
       const y = this.dbToY(db);
-      ctx.strokeStyle = "#1b2a39";
+      ctx.strokeStyle = this.eqMatch && db === 0 ? "#6f879a" : "#1b2a39";
       ctx.lineWidth = scale;
       ctx.beginPath();
       ctx.moveTo(area.x, y);
       ctx.lineTo(area.x + area.w, y);
       ctx.stroke();
       ctx.fillStyle = "#66839b";
-      ctx.fillText(`${db}`, area.x - 10 * scale, y);
+      ctx.fillText(this.eqMatch ? `${db > 0 ? "+" : ""}${db} dB` : `${db}`, area.x - 10 * scale, y);
     }
 
-    if (showSpectrum && this.spectrum) this.drawSpectrum(area, scale);
-    if (this.guess) this.drawMarker(this.guess, "#39ff14", this.guessLabel, area, scale, false);
-    if (this.answered && this.target) this.drawMarker(this.target, "#ff7117", this.targetLabel, area, scale, true);
+    if (this.eqMatch) {
+      this.drawEqCurve(this.eqMatch.userCurve, "#39ff14", scale);
+      if (this.eqMatch.targetCurve) this.drawEqCurve(this.eqMatch.targetCurve, "#ff7117", scale, true);
+      const { frequency, gain } = this.eqMatch.user;
+      ctx.fillStyle = "#39ff14";
+      ctx.beginPath();
+      ctx.arc(this.frequencyToX(frequency), this.dbToY(gain), 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#060c13";
+      ctx.lineWidth = 2 * scale;
+      ctx.stroke();
+    } else {
+      if (showSpectrum && this.spectrum) this.drawSpectrum(area, scale);
+      if (this.guess) this.drawMarker(this.guess, "#39ff14", this.guessLabel, area, scale, false);
+      if (this.answered && this.target) this.drawMarker(this.target, "#ff7117", this.targetLabel, area, scale, true);
+    }
 
     ctx.strokeStyle = "#6f879a";
     ctx.lineWidth = scale;
     ctx.strokeRect(area.x, area.y, area.w, area.h);
+  }
+
+  drawEqCurve(values, color, scale, dashed = false) {
+    const ctx = this.ctx;
+    ctx.beginPath();
+    values.forEach((value, index) => {
+      const x = this.frequencyToX(this.eqMatch.frequencies[index]);
+      const y = this.dbToY(value);
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash(dashed ? [6 * scale, 4 * scale] : []);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   drawSpectrum(area, scale) {

@@ -15,6 +15,8 @@ export class AudioEngine {
     this.spectrumData = null;
     this.masterValue = 0.06;
     this.target = { frequency: 1000, gain: 0, q: 2 };
+    this.startRequest = 0;
+    this.responseFilter = null;
   }
 
   async ensureContext() {
@@ -22,6 +24,8 @@ export class AudioEngine {
       const Context = window.AudioContext || window.webkitAudioContext;
       if (!Context) throw new Error("Web Audio API is not supported.");
       this.context = new Context();
+      this.responseFilter = this.context.createBiquadFilter();
+      this.responseFilter.type = "peaking";
       this.master = this.context.createGain();
       this.master.gain.value = this.masterValue;
       this.analyser = this.context.createAnalyser();
@@ -49,6 +53,7 @@ export class AudioEngine {
       q: clamp(Number(q), 0.2, 16),
     };
     if (!this.filter || !this.context) return;
+    this.filter.type = "peaking";
     const now = this.context.currentTime;
     this.filter.frequency.setTargetAtTime(this.target.frequency, now, 0.025);
     this.filter.gain.setTargetAtTime(this.target.gain, now, 0.025);
@@ -60,47 +65,41 @@ export class AudioEngine {
   }
 
   async start(sourceType = "pink", options = {}) {
+    // 読み込み中に停止・モード変更した場合、古い再生要求を復活させない。
+    const request = ++this.startRequest;
+    const effect = { ...this.target };
     await this.ensureContext();
+    if (request !== this.startRequest) return false;
     this.stopSource();
+
+    let buffer;
+    if (sourceType === "music") buffer = await this.loadMusic();
+    else if (sourceType === "speech") buffer = await this.loadSpeech();
+    else buffer = sourceType === "white" ? this.createWhiteNoiseBuffer() : this.createPinkNoiseBuffer();
+    if (request !== this.startRequest) return false;
 
     this.filter = this.context.createBiquadFilter();
     this.filter.type = options.filterType ?? "peaking";
-    this.filter.frequency.value = this.target.frequency;
-    this.filter.Q.value = this.target.q;
-    this.filter.gain.value = this.target.gain;
+    this.filter.frequency.value = effect.frequency;
+    this.filter.Q.value = effect.q;
+    this.filter.gain.value = effect.gain;
     this.filter.connect(this.analyser);
 
-    if (sourceType === "music" || sourceType === "speech") {
-      const buffer = sourceType === "music" ? await this.loadMusic() : await this.loadSpeech();
-      const source = this.context.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
-      source.connect(this.filter);
-      source.start();
-      this.source = source;
-    } else if (sourceType === "white") {
-      const source = this.context.createBufferSource();
-      source.buffer = this.createWhiteNoiseBuffer();
-      source.loop = true;
-      source.connect(this.filter);
-      source.start();
-      this.source = source;
-    } else {
-      const source = this.context.createBufferSource();
-      source.buffer = this.createPinkNoiseBuffer();
-      source.loop = true;
-      source.connect(this.filter);
-      source.start();
-      this.source = source;
-    }
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(this.filter);
+    source.start();
+    this.source = source;
 
     this.sourceType = sourceType;
     if (options.feedbackFrequency) this.startFeedbackTone(options.feedbackFrequency, options.feedbackLevel);
+    return true;
   }
 
   async startFeedback(sourceType, { feedbackFrequency, notchFrequency, q = 8, feedbackLevel = 0.1 }) {
     this.target = { frequency: notchFrequency, gain: 0, q };
-    await this.start(sourceType, { filterType: "notch", feedbackFrequency, feedbackLevel });
+    return this.start(sourceType, { filterType: "notch", feedbackFrequency, feedbackLevel });
   }
 
   async restart(sourceType, options = {}) {
@@ -158,7 +157,21 @@ export class AudioEngine {
   }
 
   stop() {
+    this.startRequest += 1;
     this.stopSource();
+  }
+
+  getEqResponse(parameters, frequencies) {
+    if (!this.responseFilter) return new Float32Array(frequencies.length);
+    // 未接続の計測用ノード。再生中のA/Bやパラメータ補間に影響を与えない。
+    const filter = this.responseFilter;
+    filter.frequency.value = parameters.frequency;
+    filter.gain.value = parameters.gain;
+    filter.Q.value = parameters.q;
+    const magnitudes = new Float32Array(frequencies.length);
+    const phases = new Float32Array(frequencies.length);
+    filter.getFrequencyResponse(frequencies, magnitudes, phases);
+    return magnitudes.map((value) => 20 * Math.log10(Math.max(1e-12, value)));
   }
 
   createPinkNoiseBuffer() {

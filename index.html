@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07101b">
   <title>PA Ear Training</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <main class="app">
@@ -48,6 +48,10 @@
           <small data-i18n="feedbackKillerShort">Find and suppress feedback</small>
         </span>
       </button>
+      <button id="modeEqMatch" class="modeTab" type="button">
+        <span class="modeNumber">03</span>
+        <span><strong>EQ Match</strong><small data-i18n="eqMatchShort">Recreate the target EQ</small></span>
+      </button>
     </nav>
 
     <section class="workspace">
@@ -60,13 +64,20 @@
             <div class="primaryActions">
               <button id="newQuestion" class="accent" type="button" data-i18n="newQuestion">New question</button>
               <button id="submitAnswer" type="button" disabled data-i18n="submit">Submit answer</button>
-              <div id="alternatingControl" class="alternatingControl frequencyOnly">
+              <div id="alternatingControl" class="alternatingControl compareOnly">
                 <button id="replayChange" type="button" disabled data-i18n="replay">Alternate A/B</button>
                 <label class="abSpeedControl">
                   <span data-i18n="switchInterval">Interval</span>
                   <input id="abInterval" type="range" min="0" max="100" step="1" value="50">
                   <output id="abIntervalReadout" for="abInterval">0.5 s</output>
                 </label>
+              </div>
+            </div>
+            <div class="abControl compareOnly">
+              <span data-i18n="audition">Audition</span>
+              <div class="segmented" role="group" aria-label="Audition A/B">
+                <button id="listenFlat" type="button">A · Flat</button>
+                <button id="listenChanged" class="active" type="button">B · EQ</button>
               </div>
             </div>
           </div>
@@ -103,7 +114,11 @@
         </div>
 
         <div class="answerBar">
-          <label class="monitorToggle">
+          <div class="matchOnly hidden eqLegend">
+            <span class="userCurveLabel" data-i18n="matchUserCurve">Green: your EQ</span>
+            <span id="matchTargetLegend" class="targetCurveLabel" data-i18n="matchHiddenCurve">Target curve appears after answering</span>
+          </div>
+          <label class="monitorToggle spectrumOnly">
             <input id="showSpectrum" type="checkbox">
             <span data-i18n="showSpectrum">Show spectrum while answering</span>
           </label>
@@ -111,6 +126,21 @@
       </section>
 
       <aside class="sidePanel">
+        <section class="panelBlock matchOnly hidden">
+          <p class="sectionLabel" data-i18n="matchYourEq">Your EQ · 1 peaking band</p>
+          <h3 data-i18n="matchControls">Match the sound</h3>
+          <p id="matchEditHint" class="fieldHint" data-i18n="matchEditHint">Drag: frequency / gain. Wheel: Q.</p>
+          <label class="field"><span data-i18n="matchFreq">Frequency (Hz)</span>
+            <input id="matchFrequency" type="number" min="20" max="20000" step="1" value="1000" disabled>
+          </label>
+          <label class="field"><span data-i18n="matchGain">Gain (dB)</span>
+            <input id="matchGain" type="number" min="-12" max="12" step="0.1" value="0" disabled>
+          </label>
+          <label class="field"><span data-i18n="matchQ">Q (width)</span>
+            <input id="matchQ" type="number" min="0.3" max="12" step="0.1" value="1" disabled>
+          </label>
+          <button id="matchFlat" class="flatButton" type="button" disabled data-i18n="matchFlat">Flatten your EQ</button>
+        </section>
         <section class="panelBlock">
           <p class="sectionLabel" data-i18n="sessionSetup">Session setup</p>
           <h3 data-i18n="trainingSettings">Training settings</h3>
@@ -135,12 +165,12 @@
             </select>
           </label>
 
-          <label class="field frequencyOnly">
+          <label class="field compareOnly">
             <span data-i18n="eqAmount">EQ amount</span>
             <select id="eqAmountSelect"></select>
           </label>
 
-          <label class="field frequencyOnly">
+          <label class="field compareOnly">
             <span data-i18n="challengeType">Challenge type</span>
             <select id="challengeTypeSelect">
               <option value="boost" data-i18n="boost">Boost</option>
@@ -158,13 +188,6 @@
             </select>
           </label>
 
-          <div class="abControl frequencyOnly">
-            <span data-i18n="audition">Audition</span>
-            <div class="segmented" role="group" aria-label="Audition A/B">
-              <button id="listenFlat" type="button">A · Flat</button>
-              <button id="listenChanged" class="active" type="button">B · EQ</button>
-            </div>
-          </div>
         </section>
 
         <section class="panelBlock statsPanel">
@@ -195,6 +218,6 @@
     </section>
   </main>
 
-  <script type="module" src="src/main.js?v=4"></script>
+  <script type="module" src="src/main.js?v=5"></script>
 </body>
 </html>
