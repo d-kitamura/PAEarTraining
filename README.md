@@ -6,7 +6,7 @@ PAオペレーター向けの、ブラウザで動作する聴覚・周波数ト
 
 **Frequency Hunt**（変化した周波数を当てる）、**Feedback Killer**（ノッチで模擬ハウリングを抑える）、**EQ Match**（目標のEQを再現する）の3モードを実装しています。
 
-開発の段階は [ROADMAP.md](ROADMAP.md)、仕様判断と利用者への確認事項は [DECISIONS.md](DECISIONS.md) で管理します。
+開発の段階は [ROADMAP.md](ROADMAP.md)、仕様判断と利用者への確認事項は [DECISIONS.md](DECISIONS.md)、プロンプトと返答の履歴は [CONVERSATION_HISTORY.md](CONVERSATION_HISTORY.md) で管理します。履歴には元プロジェクトから分離した経緯も含め、今後のやり取りを継続して追記します。
 
 ## 現在の機能
 
@@ -64,6 +64,7 @@ PAEarTraining/
 ├── styles.css
 ├── ROADMAP.md
 ├── DECISIONS.md
+├── CONVERSATION_HISTORY.md
 ├── speech-udhr-en.ogg
 ├── src/
 │   ├── main.js
